@@ -1,0 +1,11 @@
+.ncx-bar-table-row { padding: 10px 0; }
+.ncx-bar-title { float: right; width: 100%; text-align:center; color:#222; }
+.ncx-bar-graph-container { float: right; width: 100%; }
+.ncx-bar-graph-container .ncx-label-container { width: 100%; border-left: solid 1px #dddbda; 
+    border-right: solid 1px #dddbda; position: relative; top: -1px; height: 5px; }
+.ncx-bar-graph-container .ncx-label-container .ncx-start-label { position: relative; top: 7px; left: -4px; color:#999 }
+.ncx-bar-graph-container .ncx-label-container .ncx-end-label { position: relative; top: 7px; left: 283px; color:#999 }
+.ncx-bar-graph { width: 100%; height: 75px; }
+.ncx-bar-graph > div { color: #222; border-bottom: solid 1px #dddbda; width: 100%; overflow: hidden; }
+.ncx-bar-label { position: absolute; padding-top: 3px; }
+.ncx-bar { height:22px; background-color: #badff8; }
