@@ -1,19 +1,21 @@
 (function(id) {
     var tableId = id;
-    var carbIdx = getFieldIndex('carbs') + 1;
-    var fiberIdx = getFieldIndex('fiber') + 1;
+    var CARB_IDX = getFieldIndex('carbs') + 1;
+    var FIBER_IDX = getFieldIndex('fiber') + 1;
 
-    if(carbIdx === 0 || fiberIdx === 0) {
+    if(CARB_IDX === 0 || FIBER_IDX === 0) {
         return;
     }
 
+    var NETCARB_GOAL;
     // get data from storage
-    chrome.storage.sync.get({ netCarbs: '30' }, function(items) {
-        var $fiberCol = $('#' + tableId + ' > tbody > tr.alt td.empty');
-        $fiberCol.removeClass('empty');
-        $fiberCol.text(items.netCarbs);
+    chrome.storage.sync.get({ netCarbs: null }, function(items) {
+        var netCarbs = !items.netCarbs ? getCarbGoal() : parseInt(items.netCarbs);
+        var $netCarbCol = $('#' + tableId + ' > tbody > tr.alt td.empty');
+        $netCarbCol.removeClass('empty');
+        $netCarbCol.text(netCarbs);
 
-        processData(parseInt(items.netCarbs));
+        processData(netCarbs);
     });
 
     function processData(fiberGoal) {
@@ -23,10 +25,10 @@
         $fiberFooter.addClass('alt nutrient-column').text('Net Carbs').append('<div class="subtitle">g</div>');
         $fiberFooter.css({'whiteSpace' : 'nowrap', 'padding' : '0 5px'});
 
-        var carbs = parseInt($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + carbIdx + ') > span.macro-value').text());
-        console.log($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + carbIdx + ') > span.macro-value').text());
-        var fiber = parseInt($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + fiberIdx + ')').text());
-        console.log($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + fiberIdx + ')').text());
+        var carbs = parseInt($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + CARB_IDX + ') > span.macro-value').text());
+        console.log($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + CARB_IDX + ') > span.macro-value').text());
+        var fiber = parseInt($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + FIBER_IDX + ')').text());
+        console.log($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + FIBER_IDX + ')').text());
         var netCarbs = (carbs-fiber);
 
         var $netCarbCol = $('#' + tableId + ' > tbody > tr.total:first > td.empty');
@@ -48,6 +50,7 @@
         }
 
         renderGraph(netCarbs);
+        setRecalculatedCarbGoal();
     }
 
     function getFieldIndex(name) {
@@ -58,6 +61,28 @@
             }
         });
         return index;
+    }
+
+    function getCarbGoal() {
+        var goalCarbs = parseInt($('#' + tableId + ' > tbody > tr.total.alt:first > td:nth-child(' + CARB_IDX + ') > span.macro-value').text());
+        return goalCarbs;
+    }
+
+    function setRecalculatedCarbGoal() {
+        $totalCarbs = $('#' + tableId + ' > tbody > tr.total.alt:first > td:nth-child(' + CARB_IDX + ') > span.macro-value');
+        $totalFiber = $('#' + tableId + ' > tbody > tr.total.alt:first > td:nth-child(' + FIBER_IDX + ')');
+
+        var totalCarbs = parseInt($totalCarbs.text()) + parseInt($totalFiber.text());
+        $totalCarbs.text(totalCarbs);
+
+        var myTotalCarbs = parseInt($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + CARB_IDX + ') > span.macro-value').text());
+        var $remainingCarbs = $('#' + tableId + ' > tbody > tr.remaining:first > td:nth-child(' + CARB_IDX + ') > span.macro-value');
+        var remainCarbs = (totalCarbs - myTotalCarbs);
+
+        $remainingCarbs.text(remainCarbs);
+        $remainingCarbs.parent().removeClass('negative');
+        $remainingCarbs.parent().removeClass('positive');
+        $remainingCarbs.parent().addClass((remainCarbs < 0) ? 'negative' : 'positive');
     }
 
     function renderGraph(netCarbs) {
@@ -73,7 +98,6 @@
         var proteins = parseInt($('#' + tableId + ' > tbody > tr.total:first > td:nth-child(' + proteinIdx + ') > span.macro-value').text());
 
         var fullWidth = document.getElementById("ncx-bar-graph").offsetWidth;
-        var units = (calories === 0) ? 0 : fullWidth/calories;
 
         document.getElementById('ncx-end-label').innerText = calories;
         $('#ncx-end-label').css('left', (fullWidth - 30) + 'px');
@@ -116,7 +140,10 @@
     }
 
     function setBarGraph(id, macro, cals, label, calories) {
-        var percentage = round((cals* 100) / calories);
+        var percentage = round((cals*100) / calories);
+        if(isNaN(percentage)) {
+            percentage = 0;
+        }
         $("#" + id).css("width", percentage + "%");
         $("#" + id + "-label").text(label + ": " + macro + "g / " + cals + " cals - " + "(" +  percentage + "%)");
     }
@@ -125,4 +152,5 @@
         var factor = Math.pow(10, 1);
         return Math.round(val * factor) / factor;
     }
+
 })('diary-table');
