@@ -1,2 +1,2 @@
 # fitnesspal-netcarb
-the MyFitnessPal net carb chrome extension
+this is a chrome extension for the MyFitnessPal website.  The chrome extension calculates the net carb of your daily caloric intake.
